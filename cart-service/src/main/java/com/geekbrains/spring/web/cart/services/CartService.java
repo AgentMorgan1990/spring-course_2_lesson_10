@@ -4,9 +4,11 @@ import com.geekbrains.spring.web.api.core.ProductDto;
 import com.geekbrains.spring.web.api.exceptions.ResourceNotFoundException;
 
 
+import com.geekbrains.spring.web.api.responce.Response;
 import com.geekbrains.spring.web.cart.integrations.ProductsServiceIntegration;
 import com.geekbrains.spring.web.cart.models.Cart;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
@@ -16,6 +18,7 @@ import java.util.function.Consumer;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class CartService {
     private final ProductsServiceIntegration productsServiceIntegration;
     private final RedisTemplate<String, Object> redisTemplate;
@@ -38,11 +41,19 @@ public class CartService {
         return (Cart) redisTemplate.opsForValue().get(cartKey);
     }
 
-    public void addToCart(String cartKey, Long productId) {
-        ProductDto productDto = productsServiceIntegration.findById(productId).orElseThrow(() -> new ResourceNotFoundException("Невозможно добавить продукт в корзину. Продукт не найдет, id: " + productId));
-        execute(cartKey, c -> {
-            c.add(productDto);
-        });
+    public String addToCart(String cartKey, Long productId) {
+        Response response = productsServiceIntegration.findById(productId);
+        log.info("Получили ответ от core сервиса "+response.getMessage() +" "+ response.getProductDto() +" "+ response.isSuccess());
+
+        if (response.isSuccess()){
+            ProductDto productDto = response.getProductDto();
+            log.info("Преобразовали в продуктДТО "+productDto);
+
+            execute(cartKey, c -> {c.add(productDto);});
+            return "Успех";
+        } else {
+            return response.getMessage();
+        }
     }
 
     public void clearCart(String cartKey) {
