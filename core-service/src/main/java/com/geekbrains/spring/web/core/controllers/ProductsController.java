@@ -4,6 +4,7 @@ import com.geekbrains.spring.web.api.exceptions.ResourceNotFoundException;
 import com.geekbrains.spring.web.core.converters.ProductConverter;
 import com.geekbrains.spring.web.api.core.ProductDto;
 import com.geekbrains.spring.web.core.entities.Product;
+import com.geekbrains.spring.web.api.responce.Response;
 import com.geekbrains.spring.web.core.services.ProductsService;
 import com.geekbrains.spring.web.core.validators.ProductValidator;
 import lombok.RequiredArgsConstructor;
@@ -39,6 +40,10 @@ public class ProductsController {
         return productConverter.entityToDto(product);
     }
 
+    @GetMapping("/with_exception/{id}")
+    public Response getProductByIdWithException(@PathVariable Long id) {
+        return productsService.findByIdForResponse(id);
+    }
     @PostMapping
     public ProductDto saveNewProduct(@RequestBody ProductDto productDto) {
         productValidator.validate(productDto);

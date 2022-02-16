@@ -3,14 +3,15 @@ package com.geekbrains.spring.web.cart.controllers;
 import com.geekbrains.spring.web.api.carts.CartDto;
 import com.geekbrains.spring.web.api.dto.StringResponse;
 import com.geekbrains.spring.web.cart.converters.CartConverter;
-import com.geekbrains.spring.web.cart.models.Cart;
 import com.geekbrains.spring.web.cart.services.CartService;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api/v1/cart")
 @RequiredArgsConstructor
+@Slf4j
 public class CartsController {
     private final CartService cartService;
     private final CartConverter cartConverter;
@@ -26,8 +27,8 @@ public class CartsController {
     }
 
     @GetMapping("/{uuid}/add/{productId}")
-    public void add(@RequestHeader(required = false) String username, @PathVariable String uuid, @PathVariable Long productId) {
-        cartService.addToCart(getCurrentCartUuid(username, uuid), productId);
+    public StringResponse add(@RequestHeader(required = false) String username, @PathVariable String uuid, @PathVariable Long productId) {
+        return new StringResponse(cartService.addToCart(getCurrentCartUuid(username, uuid), productId));
     }
 
     @GetMapping("/{uuid}/decrement/{productId}")

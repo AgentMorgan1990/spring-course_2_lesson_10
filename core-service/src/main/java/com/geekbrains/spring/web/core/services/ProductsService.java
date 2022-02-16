@@ -2,9 +2,11 @@ package com.geekbrains.spring.web.core.services;
 
 import com.geekbrains.spring.web.api.exceptions.ResourceNotFoundException;
 import com.geekbrains.spring.web.api.core.ProductDto;
+import com.geekbrains.spring.web.core.converters.ProductConverter;
 import com.geekbrains.spring.web.core.entities.Product;
 import com.geekbrains.spring.web.core.repositories.ProductsRepository;
 import com.geekbrains.spring.web.core.repositories.specifications.ProductsSpecifications;
+import com.geekbrains.spring.web.api.responce.Response;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -12,12 +14,14 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.NoSuchElementException;
 import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
 public class ProductsService {
     private final ProductsRepository productsRepository;
+    private final ProductConverter productConverter;
 
     public Page<Product> findAll(Integer minPrice, Integer maxPrice, String partTitle, Integer page) {
         Specification<Product> spec = Specification.where(null);
@@ -52,5 +56,23 @@ public class ProductsService {
         product.setPrice(productDto.getPrice());
         product.setTitle(productDto.getTitle());
         return product;
+    }
+
+    public Response findByIdForResponse(Long id) {
+        try {
+            Response response = new Response();
+            response.setCode(200);
+            response.setSuccess(true);
+            response.setProductDto(productConverter.entityToDto(productsRepository.findById(id).get()));
+            response.setMessage(" ");
+            return response;
+        } catch (NoSuchElementException e) {
+            Response response = new Response();
+            response.setCode(404);
+            response.setSuccess(false);
+            response.setProductDto(null);
+            response.setMessage("Невозможно обновить продукт, не найден в базе id "+id);
+            return response;
+        }
     }
 }
